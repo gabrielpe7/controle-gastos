@@ -1,0 +1,17 @@
+[
+    {
+        "descricao": "uber",
+        "valor": 18.0,
+        "categoria": "transporte"
+    },
+    {
+        "descricao": "almoço",
+        "valor": 30.0,
+        "categoria": "alimentação"
+    },
+    {
+        "descricao": "netflix",
+        "valor": 40.0,
+        "categoria": "lazer"
+    }
+]
