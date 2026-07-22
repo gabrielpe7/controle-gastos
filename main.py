@@ -1,19 +1,35 @@
-import json
+import sqlite3
 
-ARQUIVO = "gastos.json"
-gastos = []
+ARQUIVO = "gastos.db"
+
+
+def criar_tabela():
+    conexao = sqlite3.connect(ARQUIVO)
+    cursor = conexao.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS gastos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            descricao TEXT NOT NULL,
+            valor REAL NOT NULL,
+            categoria TEXT NOT NULL
+        )
+    """)
+    conexao.commit()
+    conexao.close()
+
 
 def pedir_valor():
     while True:
-        entrada = input("Valor (ex: 25.90)")
+        entrada = input("Valor (ex: 25.90): ")
         try:
             valor = float(entrada)
             if valor <= 0:
-                print("O valor precisa ser maior que o zero. Tente novamente.")
+                print("O valor precisa ser maior que zero. Tente novamente.")
                 continue
             return valor
         except ValueError:
             print("Valor inválido. Digite apenas números (ex: 25.90).")
+
 
 def pedir_texto(mensagem):
     while True:
@@ -23,57 +39,61 @@ def pedir_texto(mensagem):
         else:
             return texto
 
+
 def cadastrar_gasto():
-    descricao = pedir_texto("Descrição do gasto:")
+    descricao = pedir_texto("Descrição do gasto: ")
     valor = pedir_valor()
-    categoria = pedir_texto("Categoria (ex: alimentação, transporte):")
+    categoria = pedir_texto("Categoria (ex: alimentação, transporte): ")
 
-    gasto = {
-        "descricao": descricao,
-        "valor": valor,
-        "categoria": categoria
-    }
+    conexao = sqlite3.connect(ARQUIVO)
+    cursor = conexao.cursor()
+    cursor.execute(
+        "INSERT INTO gastos (descricao, valor, categoria) VALUES (?, ?, ?)",
+        (descricao, valor, categoria)
+    )
+    conexao.commit()
+    conexao.close()
 
-    gastos.append(gasto)
-    salvar_dados()
     print("Gasto cadastrado com sucesso!\n")
 
+
 def listar_gastos():
-    if len(gastos) == 0:
+    conexao = sqlite3.connect(ARQUIVO)
+    cursor = conexao.cursor()
+    cursor.execute("SELECT descricao, valor, categoria FROM gastos")
+    resultados = cursor.fetchall()
+    conexao.close()
+
+    if len(resultados) == 0:
         print("Nenhum gasto cadastrado ainda.\n")
         return
-        
-    for gasto in gastos:
-        print(f"- {gasto['descricao']} | R$ {gasto['valor']:.2f} | {gasto['categoria']}")
+
+    for linha in resultados:
+        descricao, valor, categoria = linha
+        print(f"- {descricao} | R$ {valor:.2f} | {categoria}")
     print()
 
+
 def total_por_categoria():
-    totais = {}
+    conexao = sqlite3.connect(ARQUIVO)
+    cursor = conexao.cursor()
+    cursor.execute("""
+        SELECT categoria, SUM(valor)
+        FROM gastos
+        GROUP BY categoria
+    """)
+    resultados = cursor.fetchall()
+    conexao.close()
 
-    for gasto in gastos:
-        categoria = gasto["categoria"]
-        valor = gasto["valor"]
+    if len(resultados) == 0:
+        print("Nenhum gasto cadastrado ainda.\n")
+        return
 
-        if categoria in totais:
-            totais[categoria] = totais[categoria] + valor
-        else:
-            totais[categoria] = valor
-
-    for categoria, total in totais.items():
+    for linha in resultados:
+        categoria, total = linha
         print(f"- {categoria}: R$ {total:.2f}")
     print()
 
-def salvar_dados():
-    with open(ARQUIVO, "w", encoding="utf-8") as arquivo:
-        json.dump(gastos, arquivo, ensure_ascii=False, indent=4)
-
-def carregar_dados():
-    global gastos
-    try:
-        with open(ARQUIVO, "r", encoding="utf-8") as arquivo:
-            gastos = json.load(arquivo)
-    except FileNotFoundError:
-        gastos = []
 
 def menu():
     while True:
@@ -83,7 +103,7 @@ def menu():
         print("3 - Ver total por categoria")
         print("4 - Sair")
 
-        opcao = input("Escolha uma opção:").strip()
+        opcao = input("Escolha uma opção: ").strip()
 
         if opcao == "1":
             cadastrar_gasto()
@@ -97,5 +117,6 @@ def menu():
         else:
             print("Opção inválida, tente novamente.\n")
 
-carregar_dados()
+
+criar_tabela()
 menu()
