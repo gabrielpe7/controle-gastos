@@ -13,5 +13,10 @@
         "descricao": "netflix",
         "valor": 40.0,
         "categoria": "lazer"
+    },
+    {
+        "descricao": "carro",
+        "valor": 1500.0,
+        "categoria": "transporte"
     }
 ]

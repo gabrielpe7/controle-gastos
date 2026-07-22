@@ -3,11 +3,30 @@ import json
 ARQUIVO = "gastos.json"
 gastos = []
 
+def pedir_valor():
+    while True:
+        entrada = input("Valor (ex: 25.90)")
+        try:
+            valor = float(entrada)
+            if valor <= 0:
+                print("O valor precisa ser maior que o zero. Tente novamente.")
+                continue
+            return valor
+        except ValueError:
+            print("Valor inválido. Digite apenas números (ex: 25.90).")
+
+def pedir_texto(mensagem):
+    while True:
+        texto = input(mensagem)
+        if texto.strip() == "":
+            print("Esse campo não pode ficar vazio. Tente novamente.")
+        else:
+            return texto
 
 def cadastrar_gasto():
-    descricao = input("Descrição do gasto:")
-    valor = float(input("Valor (ex: 25.90):"))
-    categoria = input("Categoria (ex: alimentação, transporte):")
+    descricao = pedir_texto("Descrição do gasto:")
+    valor = pedir_valor()
+    categoria = pedir_texto("Categoria (ex: alimentação, transporte):")
 
     gasto = {
         "descricao": descricao,
@@ -64,7 +83,7 @@ def menu():
         print("3 - Ver total por categoria")
         print("4 - Sair")
 
-        opcao = input("Escolha uma opção:")
+        opcao = input("Escolha uma opção:").strip()
 
         if opcao == "1":
             cadastrar_gasto()
